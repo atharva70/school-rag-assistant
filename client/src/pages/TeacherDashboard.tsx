@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Layers,
   Lock,
-  PlusCircle,
   RefreshCw,
   Search,
   Trash2,
