@@ -104,6 +104,7 @@ async function runTests() {
 
   const adminToken = generateToken({
     userId: superAdminId.toString(),
+    id: superAdminId.toString(),
     email: 'admin@school.com',
     role: UserRole.SUPER_ADMIN,
     standardId: null
@@ -111,6 +112,7 @@ async function runTests() {
 
   const teacherToken = generateToken({
     userId: teacherId.toString(),
+    id: teacherId.toString(),
     email: 'teacher@school.com',
     role: UserRole.TEACHER,
     standardId: standard10Id.toString()
@@ -118,6 +120,7 @@ async function runTests() {
 
   const studentToken = generateToken({
     userId: studentId.toString(),
+    id: studentId.toString(),
     email: 'student@school.com',
     role: UserRole.STUDENT,
     standardId: standard10Id.toString()
