@@ -1,0 +1,175 @@
+### Environment Variables
+@baseUrl = http://localhost:5000/api
+
+### 1. Health Check
+GET http://localhost:5000/health
+
+### -------------------------------------------------------------
+### 2. AUTHENTICATION
+### -------------------------------------------------------------
+
+### 2.1 Login as Super Admin
+# @name adminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@schoolrag.com",
+  "password": "Admin@123456"
+}
+
+### Capture Admin Token from response
+@adminToken = {{adminLogin.response.body.data.token}}
+
+### -------------------------------------------------------------
+### 3. ADMIN: STANDARDS & TEACHERS
+### -------------------------------------------------------------
+
+### 3.1 Create Standard (Grade 10)
+# @name createStandard
+POST {{baseUrl}}/admin/standards
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Grade 10",
+  "subjects": [
+    {
+      "name": "Mathematics",
+      "code": "MATH10"
+    },
+    {
+      "name": "Science",
+      "code": "SCI10"
+    }
+  ]
+}
+
+### Capture Standard ID from response
+@standardId = {{createStandard.response.body.data._id}}
+
+### 3.2 Create Teacher assigned to Grade 10
+# @name createTeacher
+POST {{baseUrl}}/admin/teachers
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "email": "teacher.math@school.com",
+  "password": "TeacherPassword123!",
+  "standardId": "{{standardId}}"
+}
+
+### -------------------------------------------------------------
+### 4. TEACHER: LOGIN & CREATE STUDENT
+### -------------------------------------------------------------
+
+### 4.1 Login as Teacher
+# @name teacherLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher.math@school.com",
+  "password": "TeacherPassword123!"
+}
+
+### Capture Teacher Token
+@teacherToken = {{teacherLogin.response.body.data.token}}
+
+### 4.2 Teacher creates a Student (Assigned to Grade 10)
+# @name createStudent
+POST {{baseUrl}}/teacher/students
+Authorization: Bearer {{teacherToken}}
+Content-Type: application/json
+
+{
+  "email": "student1@school.com",
+  "password": "StudentPassword123!",
+  "standardId": "{{standardId}}"
+}
+
+### 4.3 Login as Student
+# @name studentLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student1@school.com",
+  "password": "StudentPassword123!"
+}
+
+### Capture Student Token
+@studentToken = {{studentLogin.response.body.data.token}}
+
+### -------------------------------------------------------------
+### 5. RAG: DOCUMENT UPLOAD & MANAGEMENT
+### -------------------------------------------------------------
+
+### 5.1 Upload PDF Document (TEACHER only - multipart/form-data)
+# @name uploadDoc
+POST {{baseUrl}}/documents/upload
+Authorization: Bearer {{teacherToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="standardId"
+
+{{standardId}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subjectName"
+
+Mathematics
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Class 10 Real Numbers Chapter
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="chapter1.pdf"
+Content-Type: application/pdf
+
+< ./sample.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Capture Document ID
+@documentId = {{uploadDoc.response.body.data.id}}
+
+### 5.2 Get Documents for Student (Automatically filtered by student's standardId)
+GET {{baseUrl}}/documents
+Authorization: Bearer {{studentToken}}
+
+### 5.3 Get Documents filtered by Subject
+GET {{baseUrl}}/documents?subjectName=Mathematics
+Authorization: Bearer {{studentToken}}
+
+### 5.4 Delete Document and associated Chunks (TEACHER only)
+DELETE {{baseUrl}}/documents/{{documentId}}
+Authorization: Bearer {{teacherToken}}
+
+### -------------------------------------------------------------
+### 6. RAG: CHAT & RETRIEVAL (SSE STREAMING)
+### -------------------------------------------------------------
+
+### 6.1 Student asks question (Streams SSE response & saves session)
+# @name studentChat
+POST {{baseUrl}}/chat
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "subjectName": "Mathematics",
+  "question": "What is Euclid's division lemma?"
+}
+
+### 6.2 Continue Conversation with sessionId
+POST {{baseUrl}}/chat
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "subjectName": "Mathematics",
+  "question": "Can you give an example of it?",
+  "sessionId": "65b26b38c92a54316d8a7c21"
+}
