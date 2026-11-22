@@ -18,6 +18,7 @@ export class AuthService {
 
     const payload: AuthUserPayload = {
       userId: user._id.toString(),
+      id: user._id.toString(),
       email: user.email,
       role: user.role,
       standardId: user.standardId ? user.standardId.toString() : null
