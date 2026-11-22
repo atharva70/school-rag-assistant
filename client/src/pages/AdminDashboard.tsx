@@ -294,7 +294,7 @@ export function AdminDashboard() {
             </h1>
           </div>
           <p className="mt-1 text-sm text-muted">
-            Configure school curriculum standards, manage subjects, and onboard teacher accounts.
+            Signed in as <span className="font-medium text-ink">{user?.email}</span> • Configure school curriculum standards, manage subjects, and onboard teacher accounts.
           </p>
         </div>
 

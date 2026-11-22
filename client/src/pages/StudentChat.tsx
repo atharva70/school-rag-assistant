@@ -431,6 +431,13 @@ export function StudentChat() {
                 Your student account has not been assigned to a standard. Please contact your teacher.
               </p>
             )}
+
+            {standardError && (
+              <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-red-50 p-2 text-xs text-red-700">
+                <AlertCircle className="size-3.5 shrink-0 text-red-600" />
+                <span className="truncate">{standardError}</span>
+              </div>
+            )}
           </div>
 
           {/* Sidebar Middle: Clickable Subject Buttons */}
